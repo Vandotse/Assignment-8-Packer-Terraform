@@ -19,7 +19,7 @@ The goal is to securely access private instances through a bastion host.
 
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/aws-assignment-key
 
-##Step 1: Build Custom AMI (Packer)
+## Step 1: Build Custom AMI (Packer)
 cd packer
 packer init .
 packer validate .
@@ -27,7 +27,7 @@ packer build .
 
 After build finishes, copy the AMI ID.
 
-##Step 2: Configure Terraform Variables
+## Step 2: Configure Terraform Variables
 
 Create:
 
@@ -39,7 +39,7 @@ ami_id = "ami-xxxxxxxxxxxxxxxxx"
 my_ip  = "YOUR_IP/32"
 
 
-##Step 3: Deploy Infrastructure
+## Step 3: Deploy Infrastructure
 cd terraform
 terraform init
 terraform plan
