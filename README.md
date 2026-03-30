@@ -48,5 +48,11 @@ terraform apply
 How to Connect
 1. SSH into Bastion
 ssh -A -i ~/.ssh/aws-assignment-key ec2-user@<BASTION_PUBLIC_IP>
+<img width="1470" height="956" alt="Screenshot 2026-03-30 at 1 56 35 PM" src="https://github.com/user-attachments/assets/69087d1f-55e0-41fa-9d84-8b85fc7700a9" />
+
 2. SSH into Private Instance (from Bastion)
 ssh ec2-user@<PRIVATE_IP>
+<img width="1470" height="956" alt="Screenshot 2026-03-30 at 1 58 19 PM" src="https://github.com/user-attachments/assets/7238f48d-ab6a-47a2-ac22-e6fbddb1a29f" />
+
+<img width="1470" height="956" alt="Screenshot 2026-03-30 at 1 58 32 PM" src="https://github.com/user-attachments/assets/0e48f9db-dfa7-41d8-b7d5-6928beb61298" />
+
