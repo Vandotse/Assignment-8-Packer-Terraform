@@ -24,6 +24,7 @@ cd packer
 packer init .
 packer validate .
 packer build .
+<img width="1470" height="956" alt="Screenshot 2026-03-30 at 2 27 07 PM" src="https://github.com/user-attachments/assets/03c9a862-9f31-4806-86cd-5024b652e20c" />
 
 After build finishes, copy the AMI ID.
 
@@ -44,6 +45,7 @@ cd terraform
 terraform init
 terraform plan
 terraform apply
+<img width="1470" height="956" alt="Screenshot 2026-03-30 at 2 29 41 PM" src="https://github.com/user-attachments/assets/88c1ca37-2328-4bd1-8cdf-0edd7c3d28bc" />
 
 How to Connect
 1. SSH into Bastion
