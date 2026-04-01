@@ -16,7 +16,7 @@ variable "private_key_path" {
 }
 
 variable "ami_id" {
-  description = "ami-0b6a63d11f07d51c8"
+  description = "ami-034f715cd27f63d11"
   type        = string
 }
 

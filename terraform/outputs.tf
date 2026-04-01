@@ -6,6 +6,10 @@ output "private_instance_private_ips" {
   value = aws_instance.private[*].private_ip
 }
 
+output "monitoring_private_ip" {
+  value = aws_instance.monitoring.private_ip
+}
+
 output "vpc_id" {
   value = module.vpc.vpc_id
 }
