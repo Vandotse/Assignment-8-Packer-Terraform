@@ -65,11 +65,6 @@ ssh ec2-user@<PRIVATE_IP>
 
 ## Monitoring Setup
 
-Prometheus
-
-Runs on monitoring EC2
-Scrapes metrics from all 6 private EC2 instances
-Uses Node Exporter on port 9100
 Grafana
 Runs on monitoring EC2
 Connected to Prometheus as a data source
@@ -90,12 +85,27 @@ Open:
 
 http://localhost:3000
 
+Grafana Dashboard (BONUS)
+
+A dashboard was created showing:
+
+CPU utilization per EC2 instance
+Memory utilization per EC2 instance
+
 <img width="1470" height="956" alt="Screenshot 2026-04-01 at 1 50 11 PM" src="https://github.com/user-attachments/assets/c0302200-6f6b-4e79-b613-c30154e92c20" />
 
 
 Default login:
 
 admin / admin
+
+
+Prometheus
+
+Runs on monitoring EC2
+Scrapes metrics from all 6 private EC2 instances
+Uses Node Exporter on port 9100
+
 Prometheus (port 9090)
 ssh -i ~/.ssh/aws-assignment-key -L 9090:<MONITORING_PRIVATE_IP>:9090 ec2-user@<BASTION_PUBLIC_IP>
 
