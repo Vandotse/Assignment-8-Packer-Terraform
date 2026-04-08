@@ -2,25 +2,30 @@ variable "region" {
   default = "us-east-1"
 }
 
+variable "vpc_cidr" {
+  default = "10.0.0.0/16"
+}
+
+variable "public_subnet_cidr" {
+  default = "10.0.1.0/24"
+}
+
+variable "private_subnet_cidr" {
+  default = "10.0.2.0/24"
+}
+
 variable "my_ip" {
-  description = "138.202.26.242/32"
-  type        = string
+  description = "Your IP for SSH access"
 }
 
-variable "public_key_path" {
-  default = "/Users/evanhaba/.ssh/aws-assignment-key.pub"
+variable "key_name" {
+  description = "SSH key name"
 }
 
-variable "private_key_path" {
-  default = "/Users/evanhaba/.ssh/aws-assignment-key"
+variable "ubuntu_ami_id" {
+  description = "Ubuntu AMI"
 }
 
-variable "ami_id" {
-  description = "ami-0b6a63d11f07d51c8"
-  type        = string
-}
-
-resource "aws_key_pair" "assignment" {
-  key_name   = "aws-assignment-key"
-  public_key = file(var.public_key_path)
+variable "amazon_linux_ami_id" {
+  description = "Amazon Linux AMI"
 }

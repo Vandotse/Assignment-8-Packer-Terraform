@@ -1,0 +1,34 @@
+- name: Configure EC2 instances
+  hosts: all
+  become: yes
+
+  tasks:
+
+    - name: Update packages (Ubuntu)
+      apt:
+        update_cache: yes
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Update packages (Amazon Linux)
+      dnf:
+        name: "*"
+        state: latest
+      when: ansible_os_family == "RedHat"
+
+    - name: Check Docker version
+      command: docker --version
+      register: docker_version
+      ignore_errors: yes
+
+    - name: Show Docker version
+      debug:
+        var: docker_version.stdout
+
+    - name: Get disk usage
+      command: df -h
+      register: disk_usage
+
+    - name: Show disk usage
+      debug:
+        var: disk_usage.stdout_lines

@@ -1,44 +1,101 @@
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "6.0.1"
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
+}
 
-  name = "assignment-vpc"
-  cidr = "10.0.0.0/16"
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr
+  map_public_ip_on_launch = true
+}
 
-  azs             = ["us-east-1a", "us-east-1b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.11.0/24", "10.0.12.0/24"]
+resource "aws_subnet" "private" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = var.private_subnet_cidr
+}
 
-  enable_nat_gateway = false
-  single_nat_gateway = false
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_route" "internet" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.gw.id
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_eip" "nat" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public.id
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_route" "nat_route" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
+}
+
+resource "aws_route_table_association" "private_assoc" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
+}
+
+
+resource "aws_instance" "ubuntu" {
+  count         = 3
+  ami           = var.ubuntu_ami_id
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.private.id
+  key_name      = var.key_name
+
+  vpc_security_group_ids = [aws_security_group.ssh.id]
 
   tags = {
-    Project = "aws-assignment"
+    Name = "ubuntu-${count.index}"
+    OS   = "ubuntu"
   }
 }
 
-resource "aws_instance" "bastion" {
-  ami                         = var.ami_id
-  instance_type               = "t2.micro"
-  subnet_id                   = module.vpc.public_subnets[0]
-  vpc_security_group_ids      = [aws_security_group.bastion.id]
-  key_name                    = aws_key_pair.assignment.key_name
-  associate_public_ip_address = true
+resource "aws_instance" "amazon" {
+  count         = 3
+  ami           = var.amazon_linux_ami_id
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.private.id
+  key_name      = var.key_name
+
+  vpc_security_group_ids = [aws_security_group.ssh.id]
 
   tags = {
-    Name = "bastion-host"
+    Name = "amazon-${count.index}"
+    OS   = "amazon"
   }
 }
 
-resource "aws_instance" "private" {
-  count                  = 6
-  ami                    = var.ami_id
-  instance_type          = "t2.micro"
-  subnet_id              = module.vpc.private_subnets[count.index % length(module.vpc.private_subnets)]
-  vpc_security_group_ids = [aws_security_group.private.id]
-  key_name               = aws_key_pair.assignment.key_name
+resource "aws_instance" "controller" {
+  ami           = var.amazon_linux_ami_id
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public.id
+  key_name      = var.key_name
+
+  vpc_security_group_ids = [aws_security_group.ssh.id]
 
   tags = {
-    Name = "private-instance-${count.index + 1}"
+    Name = "ansible-controller"
   }
 }
