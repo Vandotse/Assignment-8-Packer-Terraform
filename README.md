@@ -1,60 +1,110 @@
-# AWS AMI + Terraform Infrastructure (Bastion + Private EC2)
+# Assignment 11 — Terraform + Ansible (Multi-OS EC2)
 
 ## Overview
-This project builds a custom AWS environment using **Packer** and **Terraform**.
 
-- Packer creates a custom AMI with:
-  - Amazon Linux 2023
-  - Docker installed
-  - SSH access using my public key
+This assignment extends the previous Terraform infrastructure to:
 
-- Terraform provisions:
-  - VPC with public + private subnets
-  - 1 bastion host (public subnet)
-  - 6 EC2 instances (private subnets)
-  - Security groups for controlled SSH access
+Provision 7 EC2 instances
+3 Ubuntu (private subnet)
+3 Amazon Linux (private subnet)
+1 Ansible Controller (public subnet)
+Tag instances with OS type
+Use Ansible to configure the 6 private instances:
+Update/upgrade packages
+Verify Docker version
+Report disk usage
 
-The goal is to securely access private instances through a bastion host.
+## Step 1 — Setup Variables
 
+Create a terraform.tfvars file:
 
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/aws-assignment-key
-
-## Step 1: Build Custom AMI (Packer)
-cd packer
-packer init .
-packer validate .
-packer build .
-<img width="1470" height="956" alt="Screenshot 2026-03-30 at 2 27 07 PM" src="https://github.com/user-attachments/assets/03c9a862-9f31-4806-86cd-5024b652e20c" />
-
-After build finishes, copy the AMI ID.
-
-## Step 2: Configure Terraform Variables
-
-Create:
-
-terraform/terraform.tfvars
-
-Add:
-
-ami_id = "ami-xxxxxxxxxxxxxxxxx"
-my_ip  = "YOUR_IP/32"
+amazon_linux_ami_id = "ami-xxxx"
+ubuntu_ami_id       = "ami-xxxx"
+key_name            = "labsuser"
+my_ip               = "YOUR_IP/32"
+Notes:
+Get your IP by searching "what is my IP"
+Use /32 for security
+AMIs are found in AWS EC2 → AMIs
 
 
-## Step 3: Deploy Infrastructure
-cd terraform
+## Step 2 — Deploy Infrastructure
 terraform init
-terraform plan
+terraform fmt
+terraform validate
 terraform apply
+
 <img width="1470" height="956" alt="Screenshot 2026-03-30 at 2 29 41 PM" src="https://github.com/user-attachments/assets/88c1ca37-2328-4bd1-8cdf-0edd7c3d28bc" />
 
-How to Connect
-1. SSH into Bastion
-ssh -A -i ~/.ssh/aws-assignment-key ec2-user@<BASTION_PUBLIC_IP>
-<img width="1470" height="956" alt="Screenshot 2026-03-30 at 1 56 35 PM" src="https://github.com/user-attachments/assets/69087d1f-55e0-41fa-9d84-8b85fc7700a9" />
+## Step 3 — Get Outputs
+terraform output -raw controller_ip
+terraform output private_ips
 
-2. SSH into Private Instance (from Bastion)
-ssh ec2-user@<PRIVATE_IP>
-<img width="1470" height="956" alt="Screenshot 2026-03-30 at 1 58 19 PM" src="https://github.com/user-attachments/assets/7238f48d-ab6a-47a2-ac22-e6fbddb1a29f" />
+Save these values.
 
-<img width="1470" height="956" alt="Screenshot 2026-03-30 at 1 58 32 PM" src="https://github.com/user-attachments/assets/0e48f9db-dfa7-41d8-b7d5-6928beb61298" />
+## Step 4 — SSH into Ansible Controller
+ssh -i ~/.ssh/labsuser.pem ec2-user@<controller_ip>
+
+
+## Step 5 — Install Ansible
+
+On the controller:
+
+sudo dnf update -y
+sudo dnf install -y ansible-core
+ansible --version
+
+<img width="1470" height="956" alt="Screenshot 2026-04-08 at 3 52 54 PM" src="https://github.com/user-attachments/assets/37f2e0b3-8640-4b4a-b895-5b0ccc4983ae" />
+
+
+## Step 6 — Copy SSH Key to Controller
+
+From your local machine:
+
+scp -i ~/.ssh/labsuser.pem ~/.ssh/labsuser.pem ec2-user@<controller_ip>:/home/ec2-user/
+
+Then on controller:
+
+chmod 400 ~/labsuser.pem
+
+
+## Step 7 — Copy Ansible Files
+scp -r -i ~/.ssh/labsuser.pem ansible ec2-user@<controller_ip>:/home/ec2-user/
+
+
+## Step 8 — Update Inventory
+
+Edit ansible/inventory.ini with private IPs:
+
+[ubuntu]
+10.0.2.x ansible_user=ubuntu
+
+[amazon]
+10.0.2.x ansible_user=ec2-user
+
+[all:children]
+ubuntu
+amazon
+
+
+## Step 9 — Test Connectivity
+
+From the controller:
+
+cd ~/ansible
+ansible all -i inventory.ini -m ping --private-key ~/labsuser.pem
+
+Expected output:
+
+pong
+
+
+## Step 10 — Run Ansible Playbook
+ansible-playbook -i inventory.ini playbook.yml --private-key ~/labsuser.pem
+
+<img width="1470" height="956" alt="Screenshot 2026-04-08 at 4 02 06 PM" src="https://github.com/user-attachments/assets/845d817d-8185-4807-b257-8f776e2f70fd" />
+
+
+
+
 
